@@ -16,7 +16,7 @@ $$
 
 Genom att införa ett logiskt villkor i algoritmen kan den optimala utnyttjandegränsen $S^*(t)$ bestämmas. Denna gräns motsvarar punkten där det blir mer lönsamt att utnyttja optionen direkt än att behålla den, dvs. när räntevinsten på lösenpriset överstiger optionens tidsvärde.
 
-Resultaten presenteras som relativa prisskillnader för att tydligt visa hur värdet av den amerikanska flexibiliteten varierar under olika marknadsförhållanden.
+Resultaten presenteras som relativa prisskillnader för att tydligt visa hur värdet av den amerikanska optionen varierar under olika marknadsförhållanden.
 
 ## Implementering
-Projektet använder Crank–Nicolson-metoden för att uppnå stabila och noggranna beräkningar vid bestämning av den fria randen för det amerikanska utnyttjandet.
+Projektet använder Crank–Nicolson-metoden för att stabila beräkningar vid bestämning av den fria randen för när den amerikanska optionen ska lösas in.

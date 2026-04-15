@@ -1,4 +1,4 @@
-clear; clc; close all;
+%% Huvudscript
 
 K = 1; 
 Smax = 3; 
@@ -9,9 +9,19 @@ sigma_vec = 0.1:0.05:0.5;
 r_vec = 0.01:0.01:0.10;
 T_vec = 0.25:0.25:3.0;
 
+
+
 plot_EEP(r_vec, sigma_vec, @(r,s) solve_BS(s, r, 1.0, K,Smax,N,M), "r", "\sigma", "T=1.00", 1);
 plot_EEP(T_vec, sigma_vec, @(T,s) solve_BS(s, 0.05, T, K,Smax,N,M), "T", "\sigma", "r=0.05", 2);
 plot_EEP(T_vec, r_vec, @(T,r) solve_BS(0.2, r, T, K,Smax,N,M), "T", "r", "\sigma=0.2",3);
+
+%% Felanalys 
+
+sigma_test = 0.20; 
+r_test = 0.05; 
+T_test = 1.0; 
+
+felanalys_graf(sigma_test, r_test, T_test, K, Smax);
 
 %%
 function plot_EEP(xvec, yvec, f, xl, yl, param_str, num)
@@ -36,7 +46,7 @@ function plot_EEP(xvec, yvec, f, xl, yl, param_str, num)
 
 end
 
-function EEP = solve_BS(sigma, r, T, K, Smax, N, M)
+function [EEP, Va_price] = solve_BS(sigma, r, T, K, Smax, N, M)
 
     dS = Smax/N; 
     dt = T/M;
@@ -65,7 +75,7 @@ function EEP = solve_BS(sigma, r, T, K, Smax, N, M)
     for j = 1:M
         
         tau = T - j*dt;
-        V0 = K*exp(-r*tau);
+        V0 = K*exp(-r*tau); % diskontera priset! 
 
         % högerled
         rhs_e = B*Ve(2:N); % europeisk
@@ -86,4 +96,29 @@ function EEP = solve_BS(sigma, r, T, K, Smax, N, M)
     end
 
     EEP = (Va(i_K) - Ve(i_K)) / Ve(i_K);
+    Va_price = Va(i_K);
+end
+
+function felanalys_graf(sigma, r, T, K, Smax)
+    % Input: sigma (standardavvikelse), r (ränta), T (tid), K (strike price), Smax: (övre gräns)
+
+    % steglängd
+    N_list = [40, 80, 160, 320, 640,1080,2160];
+    % dubblering - kan ta tid! 
+    M_list = [80, 160, 320, 640, 1080, 2160, 4320
+
+    priser = zeros(size(N_list));
+    
+    for i = 1:length(N_list)
+        % kom ihåg, EEP returnerar två värden, så vi strungar i första
+        [~, priser(i)] = solve_BS(sigma, r, T, K, Smax, N_list(i), M_list(i));
+    end
+    
+    figure(100);
+    plot(N_list, priser, '-o', 'LineWidth', 2, 'MarkerFaceColor', 'b');
+    grid on;
+
+    xlabel('Antal prissteg (N)');
+    ylabel('Pris amerikansk option');
+    title(sprintf('Konvergensanalys vid S=0.7K (\\sigma=%.2f, r=%.2f)', sigma, r));
 end
