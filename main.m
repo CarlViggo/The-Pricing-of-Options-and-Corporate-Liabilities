@@ -106,6 +106,9 @@ function plot_EEP(xvec, yvec, f, xl, yl, param_str, num)
     title(sprintf("EEP relativ V_{eur}, %s", param_str));
     colorbar;
     view(45, 30);
+
+    %filename = sprintf('EEP_plot_%d.png', num);
+    %exportgraphics(gcf, filename, 'Resolution', 600)
 end
 
 
@@ -194,20 +197,60 @@ end
 % Smax - Övre gräns för aktiepriset
 
 function felanalys_graf(sigma, r, T, K, Smax)
-    % Steglängd — dubblering, kan ta tid!
     N_list = [40,  80,  160,  320,  640,  1080, 2160];
     M_list = [80, 160,  320,  640, 1080,  2160, 4320];
-    priser = zeros(size(N_list));
+    
+    % stil
+    line_w = 1.5;
+    marker_s = 6;
+    blue_color = [0, 0.45, 0.74];  
+    red_color  = [0.85, 0.33, 0.1]; 
+
+    priser_amer = zeros(size(N_list));
+    priser_eur  = zeros(size(N_list));
+    S_eval = 0.7 * K;
+
+    %%%% Analytiskt pris: https://en.wikipedia.org/wiki/Black%E2%80%93Scholes_equation
+    d1 = (log(S_eval/K) + (r + 0.5*sigma^2)*T) / (sigma*sqrt(T));
+
+    d2 = d1 - sigma*sqrt(T);
+
+    my_normcdf = @(x) 0.5 * (1 + erf(x / sqrt(2)));
+
+    analytiskt_eur = K*exp(-r*T)*my_normcdf(-d2) - S_eval*my_normcdf(-d1);
+    %%%%
 
     for i = 1:length(N_list)
-        % EEP returnerar två värden; vi använder bara priset
-        [~, priser(i)] = solve_BS(sigma, r, T, K, Smax, N_list(i), M_list(i), 0.7);
+        [EEP, Va_price] = solve_BS(sigma, r, T, K, Smax, N_list(i), M_list(i), 0.7);
+        priser_amer(i) = Va_price;
+        priser_eur(i)  = Va_price / (EEP + 1);
     end
 
-    figure(100);
-    plot(N_list, priser, '-o', 'LineWidth', 2, 'MarkerFaceColor', 'b');
+    % Fig 1: Konvergens för amerikansk
+    figure(100); clf;
+    set(gcf, 'Color', 'w');
+    plot(N_list, priser_amer, '-o', 'Color', blue_color, 'LineWidth', line_w, ...
+        'MarkerSize', marker_s, 'MarkerFaceColor', blue_color);
     grid on;
     xlabel('Antal prissteg (N)');
     ylabel('Pris amerikansk option');
-    title(sprintf('Konvergensanalys vid S=0.7K (\\sigma=%.2f, r=%.2f)', sigma, r));
+    title(sprintf('Konvergensanalys (Amerikansk) | S=0.7K, \\sigma=%.2f', sigma));
+
+    % Fig 2: Konvergens för europeisk (Validering)
+    figure(101); clf;
+    set(gcf, 'Color', 'w');
+    plot(N_list, priser_eur, '-o', 'Color', blue_color, 'LineWidth', line_w, ...
+        'MarkerSize', marker_s, 'MarkerFaceColor', blue_color, 'DisplayName', 'Numerisk');
+    hold on;
+    yline(analytiskt_eur, '--', 'Color', red_color, 'LineWidth', line_w, ...
+        'DisplayName', 'Analytisk');
+    grid on;
+    xlabel('Antal prissteg (N)');
+    ylabel('Pris europeisk option');
+    legend('Location', 'southeast');
+    title('Konvergensanalys (Europeisk) ');
+    hold off;
+
+    %exportgraphics(figure(100), 'konvergens_amerikansk.png', 'Resolution', 600);
+    %exportgraphics(figure(101), 'validering_europeisk.png', 'Resolution', 600);
 end
