@@ -1,22 +1,19 @@
-# Analys av Early Exercise Premium: Europeiska vs. Amerikanska Optioner
+# Analys av Early Exercise Premium (EEP)
 
-Detta projekt undersöker prissättningen av amerikanska säljoptioner genom att lösa Black-Scholes PDE som en variationsolikhet med en finitadifferensmetod. Vi analyserar den "tidiga utnyttjandepremien" genom att numeriskt jämföra amerikanska och europeiska priser vid olika nivåer av volatilitet, ränta och löptid.
-
-## Bakgrund
-
-För en amerikansk säljoption $V(S,t)$ formuleras problemet som ett **Linjärt Komplementaritetsproblem (LCP)**. Optionens värde styrs av följande system:
+Detta projekt löser Black-Scholes PDE som en variationsolikhet för amerikanska säljoptioner:
 
 $$
 \begin{cases} 
-\frac{\partial V}{\partial t} + \frac{1}{2}\sigma^2 S^2 \frac{\partial^2 V}{\partial S^2} + rS \frac{\partial V}{\partial S} - rV \leq 0 \\
-V(S,t) \geq \max(K-S, 0) \\
-\left( V - \max(K-S, 0) \right) \cdot \left( \frac{\partial V}{\partial t} + \mathcal{L}V \right) = 0
+\mathcal{L}_{BS}V \geq 0 \\
+V \geq \max(K-S, 0) \\
+(V - \text{payoff}) \cdot \mathcal{L}_{BS}V = 0
 \end{cases}
 $$
 
-Genom att införa ett logiskt villkor i algoritmen kan den optimala utnyttjandegränsen $S^*(t)$ bestämmas. Denna gräns motsvarar punkten där det blir mer lönsamt att utnyttja optionen direkt än att behålla den, dvs. när räntevinsten på lösenpriset överstiger optionens tidsvärde.
+Implementeringen använder en Crank–Nicolson-metod där optionsvärdet vid varje tidsteg begränsas enligt:
 
-Resultaten presenteras som relativa prisskillnader för att tydligt visa hur värdet av den amerikanska optionen varierar under olika marknadsförhållanden.
+$$V^{n+1} = \max\left( V_{pde}^{n+1}, K-S \right)$$
 
-## Implementering
-Projektet använder Crank–Nicolson-metoden för att stabila beräkningar vid bestämning av den fria randen för när den amerikanska optionen ska lösas in.
+Metodbeskrivning finns här:
+
+**[metodbeskrivning (PDF)](./Projektmetod.pdf)**
